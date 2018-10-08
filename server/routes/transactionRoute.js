@@ -3,8 +3,8 @@ const TransactionController = require('../controllers/transactionController')
 const isLogin = require('../middlewares/isLogin')
 
 route
-  .get('/', isLogin, TransactionController.getTransaction)
+  .get('/:target', isLogin, TransactionController.getTransaction)
   .post('/', isLogin, TransactionController.createTransaction)
-  .delete('/', isLogin, TransactionController.removeTransaction)
+  .delete('/:id/:target', isLogin, TransactionController.removeTransaction)
 
 module.exports = route

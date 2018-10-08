@@ -4,7 +4,7 @@ class CategoryController {
 
   static createCategory(req, res) {
     let data = {
-      name: req.body.category
+      name: req.body.name
     }
 
     let category = new Category(data)
@@ -12,7 +12,7 @@ class CategoryController {
       .then(data => {
         res.status(201).json({
           status: 'success',
-          message: 'createing category success'
+          message: 'creating category success'
         })
       })
       .catch(err => {

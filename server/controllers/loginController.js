@@ -11,8 +11,10 @@ class LoginController {
           
           if (bcrypt.compareSync(req.body.password, data[0].password)) {
             let token = jwt.sign({
+              id: data[0]._id,
               fname: data[0].fname,
-              email: data[0].email
+              email: data[0].email,
+              shopId: data[0].shopId
             }, process.env.JWT_HASH)
 
             res.status(200).json({

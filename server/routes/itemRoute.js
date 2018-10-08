@@ -3,10 +3,10 @@ const ItemControler = require('../controllers/itemController')
 const isLogin = require('../middlewares/isLogin')
 
 route
-  .get('/', isLogin, ItemControler.getItem)
-  .put('/', isLogin, ItemControler.updateItem)
+  .get('/', ItemControler.getItem)
+  .put('/:id', isLogin, ItemControler.updateItem)
   .post('/', isLogin, ItemControler.createItem)
-  .delete('/', isLogin, ItemControler.removeItem)
+  .delete('/:id', isLogin, ItemControler.removeItem)
 
 
 module.exports = route

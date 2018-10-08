@@ -1,9 +1,10 @@
-const Item = require('../models/transactionModel')
+const Item = require('../models/itemModel')
+const Shop = require('../models/shopModel')
 
 class ItemController {
 
   static getItem (req, res) {
-    Item.find()
+    Item.find({ deleted: 0 })
       .then(data => {
         res.status(200).json({
           status: 'success',
@@ -20,12 +21,13 @@ class ItemController {
   }
 
   static createItem (req, res) {
+    console.log(req.decoded)
     let data = {
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
       quantity: req.body.quantity,
-      shopId: req.decoded.id,
+      shopId: req.decoded.shopId,
       categoryId: req.body.categoryId
     }
 
@@ -35,7 +37,7 @@ class ItemController {
       .then(data => {
         res.status(201).json({
           status: 'success',
-          message: 'sucess creating item'
+          message: 'success creating item'
         })
       })
       .catch(err => {
@@ -48,7 +50,7 @@ class ItemController {
   }
 
   static updateItem(req, res) {
-    Item.updateOne({ _id: req.params.id, shopId: req.decoded.id }, {
+    Item.updateOne({ _id: req.params.id, shopId: req.decoded.shopId }, {
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
@@ -56,10 +58,14 @@ class ItemController {
       categoryId: req.body.categoryId
     })
       .then(data => {
-        res.status(201).json({
-          status: 'success',
-          message: 'updating data item success'
-        })
+        if (data.nModified != 0) {
+          res.status(200).json({
+            status: 'success',
+            message: 'updating data item success'
+          })
+        } else {
+          res.status(304).json()
+        }
       })
       .catch(err =>{
         res.status(500).json({
@@ -70,20 +76,25 @@ class ItemController {
   }
 
   static removeItem(req, res) {
-    Item.deleteOne({ _id: req.params.id, shopId: req.decoded.shopId })
-      .then(data => {
+    
+  Shop.update({ _id: req.decoded.shopId }, {$pull: { items: req.params.id }})
+    .then(data => {
+      if (data.nModified == 1) {
         res.status(200).json({
           status: 'success',
-          message: 'success when deleting data item'
+          message: 'deleting data item success'
         })
+      } else {
+        res.status(304).json()
+      }
+    })
+    .catch(err => [
+      res.status(500).json({
+        status: 'failed',
+        message: 'deleting data item failed',
+        err: err.message
       })
-      .catch(err => {
-        res.status(500).json({
-          status: 'failed',
-          message: 'failed when deleting data item',
-          err: err.message
-        })
-      })
+    ])
   }
 
 }

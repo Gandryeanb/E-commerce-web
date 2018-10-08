@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const categorySchema = new Schema({
   name: {
     type: String,
-    required: [true, 'Firstname required']
+    required: [true, 'Category Name required']
   }
 }, {
   timestamps: true
