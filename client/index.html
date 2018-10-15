@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <!-- vue script -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <!-- axios script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+  <!-- semantic script -->
+  <link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css> <script src=https://code.jquery.com/jquery-3.3.1.js
+    crossorigin=anonymous integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
+
+  <title>Buka Gudang</title>
+</head>
+
+<body style="padding: 0; margin: 0px;">
+  <div id="app">
+    <nav-bar :host="host" @get-user="getUser" :currentuser="currentUser" @reset-user="resetCurrentUser" @reset-view="resetCurrentView"
+      :current-role-view="currentRoleView" :current-user-view="currentUserView" :categories-list="categoriesList" :cart="cart"
+      :sum-items-on-cart="sumItemsOnCart" @reset-items-list="getItems" @reset-carts="cartReseter" @query="getQueryItem($event)"
+      @categoryquerry="getItemByCategories($event)"></nav-bar>
+    <div class="ui centered grid" v-if="currentRoleView === 'default'">
+      <user-bar :currentuser="currentUser" :host="host" @resetuser="getUser" @changeview="changeViewUser($event)  "
+        :currentview="currentUserView" @transaction-change-view="changeTransactionView"></user-bar>
+      <cards-item :currentuser="currentUser" :host="host" v-if="currentUserView == 'default'" :transactionview="transactionView"
+        :items-list="itemsList" @totalitemsoncarts="addSumItemsOnCart" @itemsoncarts="addValueCart" :cart-reset="cartReset"></cards-item>
+      <transaction-list :host="host" v-if="transactionView && currentUserView == 'default'" :currentuser="currentUser"
+        :currentuserview="currentUserView"></transaction-list>
+      <gudang-user :host="host" v-if="currentUserView == 'gudang'" :currentuser="currentUser" @changeview="changeViewUser($event)"
+        :categories-list="categoriesList" :items-list="itemsList" @reset-items-list="getItems"></gudang-user>
+    </div>
+  </div>
+
+  <!-- components -->
+  <script src="./assets/vue/components/transactionList.js"></script>
+  <script src="./assets/vue/components/gudangUser.js"></script>
+  <script src="./assets/vue/components/navbar.js"></script>
+  <script src="./assets/vue/components/userBar.js"></script>
+  <script src="./assets/vue/components/cardsItem.js"></script>
+  <!-- main page -->
+  <script src="./assets/vue/page/main.js"></script>
+</body>
+
+</html>

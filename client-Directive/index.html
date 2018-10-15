@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <link rel=icon href=/favicon.ico><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css>
+  <script src=https://code.jquery.com/jquery-3.3.1.js crossorigin=anonymous integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+  <script src=https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js></script>
+  <title>E-commerce</title>
+</head>
+<body>
+  <div id="app">
+    <div class="ui grid segment">
+      <div class="ui three wide column">
+        <p style="font-size:20px; font-weight:bold; margin: 0; padding: 0; color:orange;">Buka Gudang</p>
+      </div>
+      <div class="ui ten wide column">
+        <div class="ui grid">
+          <div class="ui two wide column">
+            <select class="ui fluid dropdown" v-model='selectedCategory'>
+              <option value="">All Categories</option>
+              <option v-for="category in categoryList">{{ category.name }}</option>
+            </select>
+          </div>
+          <div class="ui twelve wide column">
+            <div class="ui fluid icon input">
+              <input type="text" placeholder="Search an item would you buy..." v-model="querySearch">
+              <i class="search icon"></i>
+            </div>
+          </div>  
+          <div class="ui two wide column">
+            <div class="ui icon button" v-bind:class="{disabled :  !isAlreadyLogin || cartsItem.length == 0}" v-on:click="cartModal">
+              <i class="ui shop icon"></i>
+              <span>{{ totalItemsCard }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ui three wide column" style="margin-top:5px;">
+          <div class="ui tiny right floated button" v-on:click="loginModal" v-if="!currentUser">
+            Login
+          </div>
+          <div class="ui tiny right floated button" v-on:click="registModal" v-if="!currentUser">
+            Register
+          </div>
+        <div class="ui tiny right floated button" v-on:click="logout" v-else>
+          Logout
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+      <div class="ui centered grid">
+        <div class="ui two wide column" v-if="currentUser">
+          <div class="ui">
+            <div class="ui card">
+              <div class="image">
+                <img src="https://via.placeholder.com/150x150">
+              </div>
+              <div class="content">
+                <div class="meta" style="color:black">
+                  <p>{{ currentUser.name }}</p>
+                </div>
+                <div class="ui field">
+                  <div class="ui mini fluid inverted orange button" style="margin-top:20px;" v-if="!currentUser.shop">
+                    Create Gudang
+                  </div>
+                  <div class="ui mini fluid inverted orange button" style="margin-top:20px;" v-on:click="resetView('gudang')" v-else>
+                    My Gudang
+                  </div>
+                </div>
+                <div class="ui field">
+                  <div class="ui mini fluid inverted orange button" style="margin-top:20px;" v-bind:class="{ disabled: currentUser.transaction == 0 }" v-on:click="transactionView" v-if="viewTransaction == 0">
+                    My transaction
+                  </div>
+                  <div class="ui mini fluid inverted orange button" style="margin-top:20px;" v-bind:class="{ disabled: currentUser.transaction == 0 }" v-on:click="transactionView" v-else>
+                    hide transaction
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui twelve wide column" v-if="viewGudang == 1">
+          <div class="ui grid segment">
+            <div class="ui fourteen wide column">
+              name
+            </div>
+            <div class="ui two wide column">
+              <button class="ui small right floated button" v-on:click="resetView('item')">
+                <p style="font-size: 12px;">back to shop</p>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="ui" v-bind:class="{ 'twelve wide column': viewTransaction === 0, 'ten wide column': viewTransaction === 1 }" v-if="viewItem == 1">
+          <div class="" v-bind:class="cardsRow">
+            <div class="ui card" v-for="item in itemList">
+              <div class="image" v-on:click="detailItem(item)">
+                <img src="https://via.placeholder.com/350x350">
+              </div>
+              <div class="content">
+                <a class="header" style="color: orange; font-size:17px;">{{ item.name }}</a>
+                <div class="meta">
+                  <span class="date">Rp. {{ item.price }}</span>
+                </div>
+              </div>
+              <div class="extra content">
+                <div class="ui right floated mini inverted orange icon button" v-bind:class="{ disabled: isAlreadyLogin == 0 }" v-on:click="addToCart(item)">
+                  Add to card
+                </div>
+                <div style="padding-top:5px;">
+                  <i class="ui boxes icon"></i>{{ item.quantity }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ui two wide column" style="text-align: center" v-if="viewTransaction === 1 && viewItem == 1">
+            <div class="ui vertical fluid menu">
+              <a class="active item" style="font-size:15px; font-weight: regular;">
+                  Transaction List
+              </a> 
+              <a class="item" v-for="list in currentUser.transaction" style="color: orange" v-on:click="modalTransaction(list)">
+                {{ new Date(list.createdAt).getDate() }} - {{ new Date(list.createdAt).getMonth() }} - {{ new Date(list.createdAt).getFullYear() }}
+              </a>
+            </div>
+        </div>
+        <div>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+
+    <div class="ui modal transactionDetails">
+      <div class="header">
+         Transaction
+      </div>
+      <div class="ui form" style="padding: 20px;">
+        <div class="ui grid">
+          <div class="ui sixteen wide column">
+            <p>Id : {{ selectedTransaction._id }}</p>
+            <p>Created at : {{ new Date(selectedTransaction.createdAt).getDate() }} - {{ new Date(selectedTransaction.createdAt).getMonth() + 1 }} - {{ new Date(selectedTransaction.createdAt).getFullYear() }}</p>
+          </div>
+          <div class="ui five wide column">
+            <div class="ui field">
+              <label>Items names</label>
+            </div>
+          </div>
+          <div class="ui five wide column">
+            <div class="ui field">
+              <label>Price</label>
+            </div>
+          </div>
+          <div class="ui two wide column">
+            <div class="ui field">
+              <label>Amount</label>
+            </div>
+          </div>
+          <div class="ui four wide column">
+            <div class="ui field">
+              <label>Total</label>
+            </div>
+          </div>
+        </div>
+        <div class="ui grid" v-for="item in itemTransactions">
+          <div class="ui five wide column">
+            <input type="text" readonly v-bind:value="item[0].name">
+          </div>
+          <div class="ui five wide column">
+            <input type="text" readonly v-bind:value="item[0].price">
+          </div>
+          <div class="ui two wide column">
+            <input type="text" readonly v-bind:value="item.length">
+          </div>
+          <div class="ui four wide column">
+            <input type="text" readonly v-bind:value="item[0].price * item.length">
+          </div>
+        </div>
+        <div class="ui grid">
+          <div class="ui five wide column">
+          </div>
+          <div class="ui five wide column">
+          </div>
+          <div class="ui two wide column">
+          </div>
+          <div class="ui four wide column">
+            <div class="ui field">
+              <label>Total</label>
+            </div>
+            <div class="ui field">
+              <input type="text" readonly v-bind:value="subTotalTransaction">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui tiny orange inverted deny button">dismiss</div>
+      </div>
+    </div>
+
+    <div class="ui mini modal detailItem">
+      <div class="header">
+        {{ selectedItem.name }}
+      </div>
+      <div class="image">
+        <img src="https://via.placeholder.com/360x360">
+      </div>
+      <div class="content">
+        <a class="header" style="color: orange">{{ }}</a>
+        <div class="meta">
+          <div class="ui grid">
+            <div class="ui eight wide column" style="font-size:20px;">
+              <span class="date">Rp.{{ selectedItem.price }}</span>
+            </div>
+            <div class="ui eight wide right aligned column">
+              <span class="date">{{ selectedItemShopAddon }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="description" style="margin-top:20px;">
+          <p>Description :</p>
+          {{ selectedItem.description }}
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui tiny orange inverted deny button">dismiss</div>
+        <div class="ui tiny orange inverted button" v-on:click="addToCart(selectedItem)" v-bind:class="{disabled: !currentUser}">Add to cart</div>
+      </div>
+    </div>
+
+    <div class="ui mini modal login">
+      <div class="header">
+        Login
+      </div>
+      <div class="ui form" style="padding: 20px;">
+        <div class="ui field">
+          <label>Email</label>
+          <div class="ui icon input">
+            <input type="text" placeholder="Email" v-model="emailFormLogin">
+            <i class="ui user icon"></i>
+          </div>
+        </div>
+        <div class="ui field">
+          <label>Password</label>
+          <div class="ui icon input">
+            <input type="password" placeholder="Password" v-model="passwordFormLogin">
+            <i class="ui lock icon"></i>
+          </div>
+          </div>
+      </div>
+      <div class="actions">
+        <div class="ui tiny deny button">Cancel</div>
+        <div class="ui tiny deny button" v-on:click="login">Login</div>
+      </div>
+    </div>
+
+    <div class="ui tiny modal regist">
+      <div class="header">
+        Register
+      </div>
+      <div class="ui form" style="padding: 20px;">
+        <div class="ui two fields">
+          <div class="ui field required">
+            <label class="required">First name</label>
+            <div class="ui icon input">
+              <input type="text" placeholder="First name" v-model="fnameFormRegist">
+              <i class="ui user icon"></i>
+            </div>
+          </div>
+          <div class="ui field">
+            <label>Last name</label>
+            <div class="ui icon input">
+              <input type="text" placeholder="Last name" v-model="lnameFormRegist">
+              <i class="ui user alternate icon"></i>
+            </div>
+          </div>
+        </div>
+        <div class="ui field required">
+          <label>Email</label>
+          <div class="ui icon input">
+            <input type="text" placeholder="Email" v-model="emailFormRegist">
+            <i class="ui mail icon"></i>
+          </div>
+        </div>
+        <div class="ui field required">
+          <label >Password</label>
+          <div class="ui icon input">
+            <input type="password" placeholder="Password" v-model="passwordFormRegister">
+            <i class="ui lock icon"></i>
+          </div>
+        </div>
+        <div class="ui field">
+          <div class="ui icon input">
+            <input type="password" placeholder="Retype your password" v-model="passwordFormRegisterFix">
+            <i class="ui lock icon"></i>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui tiny deny button">Cancel</div>
+        <div class="ui tiny button" v-on:click="register">Submit</div>
+      </div>
+    </div>
+
+    <div class="ui modal cart">
+      <div class="header">
+        <i class="ui shop icon"></i>
+        Carts
+      </div>
+      <div class="ui form" style="padding: 20px;">
+        <div class="ui grid">
+          <div class="ui five wide column">
+            <div class="ui field">
+              <label>Items names</label>
+            </div>
+          </div>
+          <div class="ui five wide column">
+            <div class="ui field">
+              <label>Price</label>
+            </div>
+          </div>
+          <div class="ui two wide column">
+            <div class="ui field">
+              <label>Amount</label>
+            </div>
+          </div>
+          <div class="ui four wide column">
+            <div class="ui field">
+              <label>Total</label>
+            </div>
+          </div>
+        </div>
+        <div class="ui grid" v-for="item in cartsItem">
+          <div class="ui five wide column">
+            <input type="text" readonly v-bind:value="item[0].name">
+          </div>
+          <div class="ui five wide column">
+            <input type="text" readonly v-bind:value="item[0].price">
+          </div>
+          <div class="ui two wide column">
+            <input type="text" readonly v-bind:value="item.length">
+          </div>
+          <div class="ui four wide column">
+            <input type="text" readonly v-bind:value="item[0].price * item.length">
+          </div>
+        </div>
+        <div class="ui grid">
+          <div class="ui five wide column">
+          </div>
+          <div class="ui five wide column">
+          </div>
+          <div class="ui two wide column">
+          </div>
+          <div class="ui four wide column">
+            <div class="ui field">
+              <label>Total</label>
+            </div>
+            <div class="ui field">
+              <input type="text" readonly v-bind:value="subTotalCarts">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui tiny deny button">Cancel</div>
+        <div class="ui tiny deny button" v-on:click="login">Check out</div>
+      </div>
+    </div>
+    
+
+  </div>
+  <script src="./src/js/main.js"></script>
+</body>
+</html>
