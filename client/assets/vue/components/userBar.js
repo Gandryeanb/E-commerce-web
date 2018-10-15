@@ -43,7 +43,7 @@ Vue.component('user-bar', {
     <div class="ui two wide column" v-if="currentuser">
       <div class="ui card">
       <div class="content image">
-        <img src="https://storage.googleapis.com/avatarecommerce/facebook-default-no-profile-pic1.jpg">
+        <img :src="currentuser.avatar">
       </div>
         <div class="content">
           <div class="header center aligned">

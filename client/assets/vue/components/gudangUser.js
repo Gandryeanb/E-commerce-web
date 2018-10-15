@@ -110,6 +110,7 @@ Vue.component("gudang-user", {
           }
         })
         .then(data => {
+          console.log(data.data.data)
           if (data.data.data.length === 0) {
             this.myItem = null
           } else {
