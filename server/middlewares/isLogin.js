@@ -6,7 +6,7 @@ const isLogin = (req, res, next) => {
 
   if (token) {
     let decoded = jwt.verify(token, process.env.JWT_HASH)
-    
+
     req.decoded = decoded
     next()
 

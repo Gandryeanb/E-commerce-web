@@ -1,30 +1,42 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
-const bcrypt = require('bcryptjs')
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const bcrypt = require("bcryptjs");
 
 const userSchema = new Schema({
+  avatar: {
+    type: String,
+    default: 'https://storage.googleapis.com/avatarecommerce/facebook-default-no-profile-pic1.jpg'
+  },
   fname: {
     type: String,
-    required: [true, 'Firstname required']
+    required: [true, "Firstname required"]
   },
   lname: String,
   email: {
     type: String,
-    required: [true, 'Email required'],
-    unique: true
+    unique: true,
+    required: [true, "Email required"]
   },
   password: {
     type: String,
-    required: [true, 'password required']
+    required: [true, "password required"]
   },
-  shopId : {
+  shopId: {
     type: Schema.Types.ObjectId,
-    ref: 'Shop'
+    ref: "Shop"
   },
-  transaction : [{
+  transaction: [{
     type: Schema.Types.ObjectId,
-    ref: 'Transaction'
+    ref: "Transaction"
   }],
+  verified: {
+    type: Number,
+    default: 0
+  },
+  role: {
+    type: String,
+    default: "user"
+  },
   loginWeb: {
     type: Number,
     default: 1
@@ -35,13 +47,13 @@ const userSchema = new Schema({
   }
 }, {
   timestamps: true
-})
+});
 
-userSchema.post('validate', doc => {
-  let hash = bcrypt.hashSync(doc.password, Number(process.env.HASH_PW))
-  doc.password = hash
-})
+userSchema.post("validate", doc => {
+  let hash = bcrypt.hashSync(doc.password, Number(process.env.HASH_PW));
+  doc.password = hash;
+});
 
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model("User", userSchema);
 
-module.exports = User
+module.exports = User;

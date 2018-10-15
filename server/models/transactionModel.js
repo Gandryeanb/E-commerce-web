@@ -6,9 +6,22 @@ const Shop = require('../models/shopModel')
 
 const transactionSchema = new Schema({
   item: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Item',
-    require: [true, 'item required']
+    id: {
+      type: String,
+      require: [true, 'id of item required']
+    },
+    name: {
+      type: String,
+      require: [true, 'name of item required']
+    },
+    price: {
+      type: Number,
+      require: [true, 'price of item required']
+    },
+    shopId: {
+      type: String,
+      require: [true, 'shopId of item required']
+    }
   }],
   totalPrice: {
     type: Number,
@@ -22,7 +35,7 @@ const transactionSchema = new Schema({
     type: Number,
     default: 0
   },
-  shopId: { type: Schema.Types.ObjectId, ref: 'Shop' },
+  shopId: [{ type: Schema.Types.ObjectId, ref: 'Shop' }],
   userId: { type: Schema.Types.ObjectId, ref: 'User' }
 }, {
   timestamps: true
@@ -32,10 +45,11 @@ transactionSchema.post('save', doc => {
   let fixFormatItem = []
   let newItems = []
   
+  console.log(doc)
   for (let i = 0; i < doc.item.length; i++) {
     if (newItems.length == 0) {
       newItems.push(doc.item[i])
-    } else if (String(newItems[0]) !== String(doc.item[i])) {
+    } else if (String(newItems[0].id) !== String(doc.item[i].id)) {
       fixFormatItem.push(newItems)
       newItems = []
       newItems.push(doc.item[i])
@@ -46,7 +60,7 @@ transactionSchema.post('save', doc => {
   fixFormatItem.push(newItems)
   
   for (let i = 0; i < fixFormatItem.length; i++) {
-    Item.findOne({ _id: fixFormatItem[i] })
+    Item.findOne({ _id: fixFormatItem[i][0].id })
       .then(data => {
         Item.updateOne({ _id: data._id }, { quantity: data.quantity-(fixFormatItem[i].length) })
           .then(data => {
@@ -62,20 +76,23 @@ transactionSchema.post('save', doc => {
   }
 
   User.updateOne({ _id: doc.userId }, { $push: { transaction: doc._id } })
+  .then(data => {
+    
+  })
+  .catch(err => {
+    throw new Error(err)
+  })
+  
+  
+  for (let i =0; i < doc.shopId.length; i++) {
+    Shop.updateOne({ _id: doc.shopId[i] }, { $push: { transaction: doc._id } })
     .then(data => {
-
+      
     })
     .catch(err => {
       throw new Error(err)
     })
-
-  Shop.updateOne({ _id: doc.shopId }, { $push: { transaction: doc._id } })
-    .then(data => {
-
-    })
-    .catch(err => {
-      throw new Error(err)
-    })
+  }
 
 })
 

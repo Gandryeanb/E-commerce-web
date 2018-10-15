@@ -7,8 +7,11 @@ const itemSchema = new Schema({
     type: String,
     required: [true, 'Firstname required']
   },
-  description : {
-    type : String,
+  photo: {
+    type: 'String'
+  },
+  description: {
+    type: String,
     required: [true, 'description required']
   },
   price: {
@@ -28,19 +31,25 @@ const itemSchema = new Schema({
     type: Number,
     default: 0
   },
-  categoryId: [{
+  categoryId: {
     type: Schema.Types.ObjectId,
     ref: 'Category',
     required: [true, 'shodId required']
-  }]
+  }
 }, {
   timestamps: true
 })
 
 itemSchema.post('save', function (doc) {
-  Shop.updateOne({ _id: doc.shopId }, { $push : { items: doc._id } })
+  Shop.updateOne({
+      _id: doc.shopId
+    }, {
+      $push: {
+        items: doc._id
+      }
+    })
     .then(data => {
-      
+
     })
     .catch(err => {
       console.log('error when adding item to shop list')

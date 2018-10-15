@@ -3,14 +3,14 @@ const priceCalculator = require('../helpers/priceCalculator')
 const Item = require('../models/itemModel')
 const itemSorter = require('../helpers/itemsSorter')
 const idItemsFilter = require('../helpers/idItemsFilter')
+const shopIdFilter = require('../helpers/shopsIdFilter')
 const User = require('../models/userModel')
 const Shop = require('../models/shopModel')
 
 class TransactionController {
 
-  static getTransaction (req, res) {
+  static getTransaction(req, res) {
     let query = {}
-
     if (req.params.target === 'user') {
       query = {
         userId: req.decoded.id,
@@ -27,7 +27,7 @@ class TransactionController {
         message: 'wrong params'
       })
     }
-    
+
     Transaction.find(query)
       .then(data => {
         res.status(200).json({
@@ -44,9 +44,9 @@ class TransactionController {
       })
   }
 
-  static createTransaction (req, res) {
+  static createTransaction(req, res) {
     // Format items
-    
+
     // let itemA = {
     //   "id": "5bbb367476aaa7500b23adad",
     //   "price": 65000
@@ -63,14 +63,16 @@ class TransactionController {
 
     let checkStock = new Promise((resolve, reject) => {
       for (let i = 0; i < itemsArr.length; i++) {
-        Item.findOne({ _id: itemsArr[i][0].id })
+        Item.findOne({
+            _id: itemsArr[i][0].id
+          })
           .then(data => {
-            if (data.quantity - itemsArr[i].length-1 < 0) {
+            if (data.quantity - itemsArr[i].length - 1 < 0) {
               reject(data)
-            } else if (i == itemsArr.length-1){
+            } else if (i == itemsArr.length - 1) {
               resolve(data)
             } else {
-              
+
             }
           })
           .catch(err => {
@@ -82,15 +84,16 @@ class TransactionController {
     Promise.all([checkStock])
       .then(data => {
         let itemsId = idItemsFilter(req.body.items)
+        let shopsIds = shopIdFilter(req.body.items)
 
         let newData = {
-          shopId: req.decoded.shopId,
+          shopId: shopsIds,
           userId: req.decoded.id,
           item: itemsId,
           totalPrice: priceCalculator(itemsArr)
         }
         let transaction = new Transaction(newData)
-    
+
         transaction.save()
           .then(data => {
             res.status(201).json({
@@ -113,10 +116,10 @@ class TransactionController {
           err: err.message
         })
       })
-    
+
   }
 
-  static removeTransaction (req, res) {
+  static removeTransaction(req, res) {
 
     let querySearch = {}
     let queryUpdate = {}
@@ -151,7 +154,13 @@ class TransactionController {
       .then(data => {
         if (data.nModified == 1) {
           if (target == 'user') {
-            User.updateOne({ _id: req.decoded.id }, {$pull: { transaction: req.params.id}})
+            User.updateOne({
+                _id: req.decoded.id
+              }, {
+                $pull: {
+                  transaction: req.params.id
+                }
+              })
               .then(data => {
                 res.status(200).json({
                   status: 'success',
@@ -166,7 +175,13 @@ class TransactionController {
                 })
               })
           } else {
-            Shop.updateOne({ _id: req.decoded.shopId }, {$pull: { transaction: req.params.id}})
+            Shop.updateOne({
+                _id: req.decoded.shopId
+              }, {
+                $pull: {
+                  transaction: req.params.id
+                }
+              })
               .then(data => {
                 res.status(200).json({
                   status: 'success',
@@ -188,7 +203,7 @@ class TransactionController {
           })
         }
       })
-      .catch (err => {
+      .catch(err => {
         res.status(500).json({
           status: 'failed',
           message: 'failed when deleting data'
