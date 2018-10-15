@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const userSchema = new Schema({
   avatar: {
     type: String,
-    default: 'https://storage.googleapis.com/avatarecommerce/facebook-default-no-profile-pic1.jpg'
+    default: 'https://storage.googleapis.com/all-storage-e-commerce/person-icon-user-person-man-icon-4.png'
   },
   fname: {
     type: String,

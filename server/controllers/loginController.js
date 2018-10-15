@@ -10,7 +10,7 @@ class LoginController {
       })
       .then(data => {
         if (data.length === 1) {
-          if (data[0].verified === 0) {
+          if (data[0].verified === 0 || data[0].verified === 1) {
             if (bcrypt.compareSync(req.body.password, data[0].password)) {
               let token = jwt.sign({
                 id: data[0]._id,

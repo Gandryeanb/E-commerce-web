@@ -8,6 +8,7 @@ const isLogin = (req, res, next) => {
     let decoded = jwt.verify(token, process.env.JWT_HASH)
 
     req.decoded = decoded
+    console.log('masuk is Login')
     next()
 
   } else {

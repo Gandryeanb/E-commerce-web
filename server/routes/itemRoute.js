@@ -5,10 +5,10 @@ const GCSupload = require('../helpers/GCSuploader')
 const userOnly = require('../middlewares/userOnly')
 
 route
-  .get('/:name', ItemControler.getItemByQuery)
-  .get('/category/:query', ItemControler.getItemByCategories)
   .get('/', ItemControler.getItem)
   .get('/shop', isLogin, ItemControler.myItem)
+  .get('/:name', ItemControler.getItemByQuery)
+  .get('/category/:query', ItemControler.getItemByCategories)
   .put('/:id', isLogin, GCSupload.multer.single('image'),
     GCSupload.sendUploadToGCS, ItemControler.updateItem)
   .delete('/:id', isLogin, ItemControler.removeItem)

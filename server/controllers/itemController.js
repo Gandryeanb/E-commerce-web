@@ -71,8 +71,9 @@ class ItemController {
   }
 
   static myItem(req, res) {
+    console.log('masuuk controller')
     Item.find({
-        shopId: req.decoded.shopId,
+        shopId: req.decoded.shopId._id,
         deleted: 0
       })
       .populate("categoryId", "name")
